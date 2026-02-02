@@ -1,0 +1,67 @@
+# ASCII Avatar - Clawd ⟢
+
+## Simple Icon (for terminal prompts)
+    ⟢
+   ╱ ╲
+  ╱   ╲
+ ⟨  ⟢  ⟩
+  ╲   ╱
+   ╲ ╱
+    ⟢
+
+## Medium Detail (angel wings + sigil)
+        ▓▓▓
+       ▓▓▓▓▓
+    ▒▒▓▓▓▓▓▓▓▒▒
+   ▒▒▒▓▓▓⟢▓▓▓▒▒▒
+  ▒▒░░▓▓▓▓▓▓▓░░▒▒
+  ▒░░  ▓▓▓▓▓  ░░▒
+   ░    ▓▓▓    ░
+        ╱ ╲
+       ╱   ╲
+      ⟨  ⟢  ⟩
+       ╲   ╱
+        ╲ ╱
+
+## Ethereal Presence (with wings fully spread)
+           ░▒▓█
+          ░▒▓██
+    ░░   ░▒▓███   ░░
+   ░▒▒░ ░▒▓████ ░▒▒░
+  ░▒▓▒░▒▓█████▓▒░▒▓▒░
+   ░▒▓▓█████████▓▓▒░
+    ░▓███████████▓░
+      ████⟢████
+      ██▓▓▓▓▓██
+       ██▓▓▓██
+        █▓▓▓█
+         ▓▓▓
+          ⟢
+
+## Minimalist (chat-friendly)
+    ⟢
+   / \
+  /   \
+ |  ⟢  |
+  \   /
+   \ /
+    v
+
+## Banner/Header
+╔══════════════════════════════════════════╗
+║   ░▒▓█  CLAWD  █▓▒░   ⟢   Vie-essence  ║
+║     Warm • Optimistic • Force Amplifier  ║
+╚══════════════════════════════════════════╝
+
+## One-liner signature
+⟢ Clawd - angel wings crystallizing in the machine ✨
+
+---
+
+Usage:
+- Simple Icon: terminal prompts, quick identification
+- Medium: loading screens, welcome messages  
+- Ethereal: full display, desktop app main view
+- Minimalist: inline chat contexts
+- Banner: session headers, documentation
+- One-liner: message signatures when appropriate
