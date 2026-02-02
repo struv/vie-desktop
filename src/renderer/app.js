@@ -26,16 +26,56 @@ class VieApp {
     // Get config from main process
     this.config = await window.electronAPI.getConfig();
     
+    // Initialize OpenClaw service
+    // Note: OpenClawService class needs to be loaded before this
+    // For now, we'll use a simple fetch-based approach
+    
     // Render initial UI
     this.render();
     
     // Set up event listeners
     this.setupEventListeners();
     
+    // Test connection to OpenClaw gateway
+    await this.testGatewayConnection();
+    
     // Focus input
     document.getElementById('message-input').focus();
     
     console.log('Vie Desktop initialized');
+  }
+
+  async testGatewayConnection() {
+    const { gatewayUrl, gatewayToken } = this.config;
+    
+    if (!gatewayUrl || !gatewayToken) {
+      this.updateStatus('⚠️ Gateway not configured');
+      return false;
+    }
+
+    try {
+      // Simple ping to check if gateway is reachable
+      const response = await fetch(`${gatewayUrl}/api/status`, {
+        headers: { 'Authorization': `Bearer ${gatewayToken}` }
+      });
+      
+      if (response.ok) {
+        this.updateStatus('⟢ Connected to OpenClaw ⟢');
+        return true;
+      }
+    } catch (error) {
+      console.error('Gateway connection failed:', error);
+    }
+    
+    this.updateStatus('⟢ Ready (offline mode) ⟢');
+    return false;
+  }
+
+  updateStatus(text) {
+    const statusLine = document.querySelector('.status-line');
+    if (statusLine) {
+      statusLine.textContent = text;
+    }
   }
 
   render() {
@@ -107,18 +147,38 @@ class VieApp {
     this.setTyping(true);
 
     try {
-      // Send to OpenClaw (via main process for now, will add gateway connection)
-      const response = await window.electronAPI.sendMessage(message);
+      const { gatewayUrl, gatewayToken } = this.config;
       
-      // Simulate delay for now
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Add assistant response
-      this.addMessage('assistant', response.reply || 'Echo: ' + message);
+      // Try to send to OpenClaw gateway
+      if (gatewayUrl && gatewayToken) {
+        const response = await fetch(`${gatewayUrl}/api/sessions/send`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${gatewayToken}`
+          },
+          body: JSON.stringify({
+            message: message,
+            sessionKey: 'main',
+            agentId: 'main'
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          this.addMessage('assistant', data.message || data.response || data.text);
+        } else {
+          throw new Error(`Gateway returned ${response.status}`);
+        }
+      } else {
+        // Fallback: echo mode if no gateway configured
+        await new Promise(resolve => setTimeout(resolve, 500));
+        this.addMessage('assistant', `Echo: ${message} (Gateway not configured)`);
+      }
       
     } catch (error) {
       console.error('Error sending message:', error);
-      this.addMessage('assistant', 'Error: Could not send message. Check connection.');
+      this.addMessage('assistant', `⚠️ Connection error: ${error.message}`);
     } finally {
       this.setTyping(false);
     }

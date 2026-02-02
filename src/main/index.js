@@ -57,10 +57,11 @@ ipcMain.handle('send-message', async (event, message) => {
 });
 
 ipcMain.handle('get-config', async () => {
-  // TODO: Load from config file
+  // Load OpenClaw gateway configuration
+  // These can be set via environment variables or a config file
   return {
-    gatewayUrl: 'http://localhost:18789',
-    gatewayToken: process.env.OPENCLAW_TOKEN || ''
+    gatewayUrl: process.env.OPENCLAW_GATEWAY_URL || 'http://localhost:18789',
+    gatewayToken: process.env.OPENCLAW_GATEWAY_TOKEN || ''
   };
 });
 
