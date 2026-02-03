@@ -1,10 +1,10 @@
 // OpenClaw Gateway Connection Service
+// Uses the OpenResponses API: POST /v1/responses
 
 class OpenClawService {
   constructor(config) {
     this.gatewayUrl = config.gatewayUrl || 'http://localhost:18789';
     this.gatewayToken = config.gatewayToken || '';
-    this.sessionKey = null;
     this.connected = false;
   }
 
@@ -12,11 +12,24 @@ class OpenClawService {
    * Test connection to gateway
    */
   async testConnection() {
+    if (!this.gatewayToken) {
+      console.log('⚠ No gateway token configured');
+      return false;
+    }
+
     try {
-      const response = await fetch(`${this.gatewayUrl}/api/status`, {
+      // Simple ping with minimal input
+      const response = await fetch(`${this.gatewayUrl}/v1/responses`, {
+        method: 'POST',
         headers: {
-          'Authorization': `Bearer ${this.gatewayToken}`
-        }
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.gatewayToken}`,
+          'x-openclaw-agent-id': 'main'
+        },
+        body: JSON.stringify({
+          model: 'openclaw',
+          input: 'ping'
+        })
       });
       
       if (response.ok) {
@@ -25,7 +38,8 @@ class OpenClawService {
         return true;
       }
       
-      throw new Error(`Gateway returned ${response.status}`);
+      const errorText = await response.text();
+      throw new Error(`Gateway returned ${response.status}: ${errorText}`);
     } catch (error) {
       console.error('✗ Failed to connect to OpenClaw gateway:', error);
       this.connected = false;
@@ -35,37 +49,49 @@ class OpenClawService {
 
   /**
    * Send a message to Clawd and get response
+   * Uses OpenResponses API format
    */
   async sendMessage(message) {
-    if (!this.connected) {
-      await this.testConnection();
-    }
-
     try {
-      // OpenClaw gateway API endpoint for sending messages
-      // This will need to match the actual OpenClaw API structure
-      const response = await fetch(`${this.gatewayUrl}/api/sessions/send`, {
+      const response = await fetch(`${this.gatewayUrl}/v1/responses`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.gatewayToken}`
+          'Authorization': `Bearer ${this.gatewayToken}`,
+          'x-openclaw-agent-id': 'main'
         },
         body: JSON.stringify({
-          message: message,
-          sessionKey: this.sessionKey || 'main', // Use main session
-          agentId: 'main'
+          model: 'openclaw',
+          input: message
         })
       });
 
       if (!response.ok) {
-        throw new Error(`Gateway error: ${response.status} ${response.statusText}`);
+        const errorText = await response.text();
+        throw new Error(`Gateway error: ${response.status} ${errorText}`);
       }
 
       const data = await response.json();
+      
+      // Parse OpenResponses format
+      // Response shape: { output: [{ type: "message", content: [{ type: "output_text", text: "..." }] }] }
+      let replyText = 'No response';
+      
+      if (data.output && data.output.length > 0) {
+        const outputItem = data.output[0];
+        if (outputItem.content && outputItem.content.length > 0) {
+          // Find the first text content part
+          const textPart = outputItem.content.find(part => part.type === 'output_text');
+          if (textPart && textPart.text) {
+            replyText = textPart.text;
+          }
+        }
+      }
+
       return {
         success: true,
-        reply: data.message || data.response || data.text || 'No response',
-        sessionKey: data.sessionKey
+        reply: replyText,
+        raw: data
       };
 
     } catch (error) {
@@ -79,31 +105,12 @@ class OpenClawService {
   }
 
   /**
-   * Get session history (for loading previous conversation)
+   * Send a message with streaming (SSE)
+   * Not implemented yet - will add in Phase 3
    */
-  async getHistory(limit = 50) {
-    try {
-      const response = await fetch(
-        `${this.gatewayUrl}/api/sessions/history?` + 
-        `sessionKey=${this.sessionKey || 'main'}&limit=${limit}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${this.gatewayToken}`
-          }
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Failed to get history: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data.messages || [];
-
-    } catch (error) {
-      console.error('Error getting history:', error);
-      return [];
-    }
+  async streamMessage(message, onChunk) {
+    // TODO: Implement SSE streaming for real-time responses
+    throw new Error('Streaming not yet implemented');
   }
 }
 
