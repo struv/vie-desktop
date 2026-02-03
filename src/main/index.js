@@ -13,8 +13,8 @@ function createWindow() {
     backgroundColor: '#1a0f2e',
     show: false, // Don't show until ready
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
+      nodeIntegration: false,
+      contextIsolation: true,
       preload: path.join(__dirname, 'preload.js')
     },
     icon: path.join(__dirname, '..', '..', 'assets', 'icons', 'icon.png')
