@@ -9,10 +9,17 @@
     "build": "electron-builder",
     "test": "echo \"Tests coming soon\" && exit 0"
   },
-  "keywords": ["ai", "assistant", "voice", "openclaw", "vie"],
+  "keywords": [
+    "ai",
+    "assistant",
+    "voice",
+    "openclaw",
+    "vie"
+  ],
   "author": "struv",
   "license": "MIT",
   "dependencies": {
+    "dotenv": "^17.2.3",
     "electron": "^28.0.0"
   },
   "devDependencies": {
