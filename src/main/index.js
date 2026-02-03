@@ -19,15 +19,11 @@ function createWindow() {
     icon: path.join(__dirname, '../../assets/icons/icon.png')
   });
 
-  // In development, load from file. In production, load built files.
-  const isDev = process.env.NODE_ENV === 'development';
+  // Always load from file (we're in development for now)
+  mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
   
-  if (isDev) {
-    mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
-    mainWindow.webContents.openDevTools(); // Auto-open DevTools in dev
-  } else {
-    mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
-  }
+  // Open DevTools for debugging
+  mainWindow.webContents.openDevTools();
 
   mainWindow.on('closed', () => {
     mainWindow = null;
