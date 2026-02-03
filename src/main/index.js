@@ -9,28 +9,46 @@ function createWindow() {
     height: 600,
     minWidth: 600,
     minHeight: 400,
-    frame: true, // Will make frameless later for custom title bar
-    backgroundColor: '#1a0f2e', // Deep purple-black from design
+    frame: true,
+    backgroundColor: '#1a0f2e',
+    show: false, // Don't show until ready
     webPreferences: {
       nodeIntegration: true,
-      contextIsolation: false, // Simplified for MVP, secure later
+      contextIsolation: false,
       preload: path.join(__dirname, 'preload.js')
     },
-    icon: path.join(__dirname, '../../assets/icons/icon.png')
+    icon: path.join(__dirname, '..', '..', 'assets', 'icons', 'icon.png')
   });
 
-  // Always load from file (we're in development for now)
-  mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
+  // Load index.html
+  const indexPath = path.join(__dirname, '..', 'renderer', 'index.html');
+  console.log('Loading index.html from:', indexPath);
   
-  // Open DevTools for debugging
+  mainWindow.loadFile(indexPath).then(() => {
+    console.log('✓ Loaded index.html successfully');
+  }).catch(err => {
+    console.error('✗ Failed to load index.html:', err);
+  });
+  
+  // Show window once ready
+  mainWindow.once('ready-to-show', () => {
+    mainWindow.show();
+    console.log('✓ Window shown');
+  });
+  
+  // Open DevTools
   mainWindow.webContents.openDevTools();
 
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
+  
+  // Log any console messages from renderer
+  mainWindow.webContents.on('console-message', (event, level, message, line, sourceId) => {
+    console.log(`[Renderer] ${message}`);
+  });
 }
 
-// App lifecycle
 app.whenReady().then(createWindow);
 
 app.on('window-all-closed', () => {
@@ -45,16 +63,13 @@ app.on('activate', () => {
   }
 });
 
-// IPC handlers for renderer communication
+// IPC handlers
 ipcMain.handle('send-message', async (event, message) => {
-  // TODO: Send to OpenClaw gateway
   console.log('Message from renderer:', message);
   return { success: true, reply: 'Echo: ' + message };
 });
 
 ipcMain.handle('get-config', async () => {
-  // Load OpenClaw gateway configuration
-  // These can be set via environment variables or a config file
   return {
     gatewayUrl: process.env.OPENCLAW_GATEWAY_URL || 'http://localhost:18789',
     gatewayToken: process.env.OPENCLAW_GATEWAY_TOKEN || ''
@@ -62,3 +77,5 @@ ipcMain.handle('get-config', async () => {
 });
 
 console.log('Vie Desktop starting...');
+console.log('App path:', app.getAppPath());
+console.log('__dirname:', __dirname);
